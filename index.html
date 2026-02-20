@@ -1355,9 +1355,9 @@
       const [lat, lon] = cities[defaultCity];
       loadCurrentWeather(lat, lon);
       
-      // Define currentYear outside the if block
-      const currentYear = new Date().getFullYear() - 1;
-      const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
+      // Data range is 2000-2024 (latest complete year), so use 2024
+      const currentYear = 2024; // Data ends at 2025-02, latest complete year is 2024
+      const currentMonth = "12"; // Use December for initial display
       
       // Load initial past weather data (only if data is loaded)
       if (weatherDataLoaded) {
