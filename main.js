@@ -15,6 +15,100 @@ let temperatureLayer;
 let rainfallLayer;
 let currentLayer = 'temperature';
 
+// Weather data loaded from CSV
+let weatherData = {};
+let weatherDataLoaded = false;
+
+// City latitude mapping (from CSV data)
+const cityLatMap = {
+    'Melbourne': '-37.785587310791016',
+    'Sydney': '-33.84885787963867',
+    'Brisbane': '-27.451669692993164',
+    'Perth': '-31.950790405273438',
+    'Adelaide': '-34.90333938598633',
+    'Canberra': '-35.25483322143555'
+};
+
+// Load weather data from CSV file
+async function loadWeatherDataFromCSV() {
+    try {
+        console.log('Loading weather data from CSV...');
+        
+        // Try to load from GitHub first (for GitHub Pages)
+        let csvUrl = 'https://raw.githubusercontent.com/Archercool/FIT3164-Project/main/data/all_locations_daily_weather_data.csv';
+        
+        const response = await fetch(csvUrl);
+        if (!response.ok) {
+            throw new Error('Failed to fetch CSV from GitHub');
+        }
+        
+        const csvText = await response.text();
+        const lines = csvText.split('\n').filter(line => line.trim());
+        
+        // Parse CSV
+        const headers = lines[0].split(',');
+        
+        // Initialize weather data structure
+        const cities = ['Melbourne', 'Sydney', 'Brisbane', 'Perth', 'Adelaide', 'Canberra'];
+        cities.forEach(city => {
+            weatherData[city] = [];
+        });
+        
+        // Parse each line
+        lines.slice(1).forEach(line => {
+            const values = line.split(',');
+            if (values.length < 16) return;
+            
+            const lat = values[1].replace(/"/g, '').trim();
+            
+            // Find matching city
+            let matchedCity = Object.keys(cityLatMap).find(key => cityLatMap[key] === lat);
+            
+            if (matchedCity) {
+                // Parse date - handle the timestamp format
+                let dateStr = values[0].replace(/"/g, '').trim();
+                // Extract just the date part (YYYY-MM-DD)
+                dateStr = dateStr.split(' ')[0];
+                
+                weatherData[matchedCity].push({
+                    date: dateStr,
+                    temperature_2m_max: parseFloat(values[4]) || null,
+                    temperature_2m_min: parseFloat(values[5]) || null,
+                    temperature_2m_mean: parseFloat(values[6]) || null,
+                    precipitation_sum: parseFloat(values[15]) || 0,
+                    rain_sum: parseFloat(values[16]) || 0
+                });
+            }
+        });
+        
+        // Sort each city's data by date
+        cities.forEach(city => {
+            weatherData[city].sort((a, b) => new Date(a.date) - new Date(b.date));
+        });
+        
+        console.log('Weather data loaded successfully!');
+        console.log('Cities loaded:', Object.keys(weatherData));
+        console.log('Sample data (Melbourne):', weatherData['Melbourne']?.slice(0, 3));
+        
+        weatherDataLoaded = true;
+        return weatherData;
+        
+    } catch (error) {
+        console.error('Error loading weather data:', error);
+        // Try local file as fallback
+        try {
+            console.log('Trying to load from local file...');
+            const response = await fetch('./data/all_locations_daily_weather_data.csv');
+            const csvText = await response.text();
+            // Same parsing logic...
+            console.log('Loaded from local file');
+        } catch (e) {
+            console.error('Failed to load weather data:', e);
+        }
+        return {};
+    }
+}
+
 // Weather code to icon mapping
 const weatherIcons = {
     0: 'https://openweathermap.org/img/wn/01d@2x.png', // Clear sky
@@ -376,7 +470,11 @@ const cities_2 = {
 };
 
 // Initialize everything after DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // Load weather data from CSV first
+    console.log('Initializing weather data...');
+    await loadWeatherDataFromCSV();
+    
     initializeMap();
     initializeCharts();
     
@@ -385,10 +483,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const [lat, lon] = cities[defaultCity];
     loadCurrentWeather(lat, lon);
     
-    // Load initial past weather data
-    const currentYear = new Date().getFullYear() -1;
-    const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
-    loadPastWeatherCompare('melbourne', 'sydney', currentYear, currentMonth);
+    // Load initial past weather data (only if data is loaded)
+    if (weatherDataLoaded) {
+        const currentYear = new Date().getFullYear() - 1;
+        const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
+        loadPastWeatherCompare('melbourne', 'sydney', currentYear, currentMonth);
+    }
 
     // Initialize year selectors with proper range
     const trendStartYear = document.getElementById('trendStartYear');
@@ -1404,28 +1504,28 @@ const start = `${year}-${month}-01`;
 const end = `${year}-${month}-${new Date(year, month, 0).getDate()}`;
 
 try {
-    // Capitalize city names for the API call
-    const response = await fetch(`http://127.0.0.1:5000/weather/raw?city=${cityA.charAt(0).toUpperCase() + cityA.slice(1)}&city=${cityB.charAt(0).toUpperCase() + cityB.slice(1)}`);
-    const data = await response.json();
-
-    console.log("API Response:", data); // Debugging log
+    // Check if weather data is loaded
+    if (!weatherDataLoaded || Object.keys(weatherData).length === 0) {
+        console.error("Weather data not loaded yet");
+        return;
+    }
 
     // Capitalize city names for accessing the data object
     const cityAKey = cityA.charAt(0).toUpperCase() + cityA.slice(1);
     const cityBKey = cityB.charAt(0).toUpperCase() + cityB.slice(1);
 
     // Check if data exists for the cities
-    if (!data[cityAKey] || !data[cityBKey]) {
-        console.error("No data available for the selected cities.");
+    if (!weatherData[cityAKey] || !weatherData[cityBKey]) {
+        console.error("No data available for selected cities:", cityAKey, cityBKey);
         return;
     }
 
     // Filter data for the selected month
-    const cityAData = data[cityAKey].filter(record => record.date >= start && record.date <= end);
-    const cityBData = data[cityBKey].filter(record => record.date >= start && record.date <= end);
+    const cityAData = weatherData[cityAKey].filter(record => record.date >= start && record.date <= end);
+    const cityBData = weatherData[cityBKey].filter(record => record.date >= start && record.date <= end);
 
-    console.log("City A Data:", cityAData); // Debugging log
-    console.log("City B Data:", cityBData); // Debugging log
+    console.log("City A Data:", cityAData.length, "records");
+    console.log("City B Data:", cityBData.length, "records");
 
     // Update temperature chart
     tempChart.data.labels = cityAData.map(record => record.date);
@@ -1520,38 +1620,48 @@ async function updateAnnualPattern() {
     const year = document.getElementById('annualYearSelect').value;
 
     try {
-            // Fetch data from the backend
-    const response = await fetch(`http://127.0.0.1:5000/weather/raw?city=${city.charAt(0).toUpperCase() + city.slice(1)}`);
-    const data = await response.json();
+        // Check if weather data is loaded
+        if (!weatherDataLoaded || Object.keys(weatherData).length === 0) {
+            console.error("Weather data not loaded yet");
+            return;
+        }
 
-    const cityKey = city.charAt(0).toUpperCase() + city.slice(1);
-    const cityData = data[cityKey].filter(record => record.date.startsWith(year));
+        const cityKey = city.charAt(0).toUpperCase() + city.slice(1);
+        const cityData = weatherData[cityKey] ? weatherData[cityKey].filter(record => record.date.startsWith(year)) : [];
 
-    // Process data into monthly averages
-    const monthlyData = Array(12).fill().map(() => ({ max: [], min: [] }));
-    cityData.forEach(record => {
-        const month = new Date(record.date).getMonth();
-        monthlyData[month].max.push(record.temperature_2m_max);
-        monthlyData[month].min.push(record.temperature_2m_min); 
-    });
+        if (!cityData || cityData.length === 0) {
+            console.error("No data available for", cityKey, year);
+            return;
+        }
 
-    // Calculate monthly averages
-    const monthlyAverages = monthlyData.map(month => ({
-        max: month.max.length > 0 ? month.max.reduce((a, b) => a + b, 0) / month.max.length : null,
-        min: month.min.length > 0 ? month.min.reduce((a, b) => a + b, 0) / month.min.length : null
-    }));
+        // Process data into monthly averages
+        const monthlyData = Array(12).fill().map(() => ({ max: [], min: [] }));
+        cityData.forEach(record => {
+            const dateParts = record.date.split('-');
+            const month = parseInt(dateParts[1]) - 1; // Month is 0-indexed
+            if (month >= 0 && month < 12) {
+                monthlyData[month].max.push(record.temperature_2m_max);
+                monthlyData[month].min.push(record.temperature_2m_min);
+            }
+        });
 
-    // Update chart
-    annualPatternChart.data.datasets[0].data = monthlyAverages.map(m => 
-        m.max !== null ? (useMetric ? m.max : celsiusToFahrenheit(m.max)) : null
-    );
-    annualPatternChart.data.datasets[1].data = monthlyAverages.map(m => 
-        m.min !== null ? (useMetric ? m.min : celsiusToFahrenheit(m.min)) : null
-    );
+        // Calculate monthly averages
+        const monthlyAverages = monthlyData.map(month => ({
+            max: month.max.length > 0 ? month.max.reduce((a, b) => a + b, 0) / month.max.length : null,
+            min: month.min.length > 0 ? month.min.reduce((a, b) => a + b, 0) / month.min.length : null
+        }));
 
-    annualPatternChart.update();
+        // Update chart
+        annualPatternChart.data.datasets[0].data = monthlyAverages.map(m => 
+            m.max !== null ? (useMetric ? m.max : celsiusToFahrenheit(m.max)) : null
+        );
+        annualPatternChart.data.datasets[1].data = monthlyAverages.map(m => 
+            m.min !== null ? (useMetric ? m.min : celsiusToFahrenheit(m.min)) : null
+        );
+
+        annualPatternChart.update();
     } catch (error) {
-    console.error('Error updating annual pattern:', error);
+        console.error('Error updating annual pattern:', error);
     }
 }
 
@@ -1561,12 +1671,14 @@ async function updateTrendAnalysis() {
     const endYear = parseInt(document.getElementById('trendEndYear').value);
     
     try {
-    // Fetch data from the backend
-    const response = await fetch(`http://127.0.0.1:5000/weather/raw?city=${city.charAt(0).toUpperCase() + city.slice(1)}`);
-    const data = await response.json();
+        // Check if weather data is loaded
+        if (!weatherDataLoaded || Object.keys(weatherData).length === 0) {
+            console.error("Weather data not loaded yet");
+            return;
+        }
     
-    const cityKey = city.charAt(0).toUpperCase() + city.slice(1);
-    const cityData = data[cityKey];
+        const cityKey = city.charAt(0).toUpperCase() + city.slice(1);
+        const cityData = weatherData[cityKey];
 
     if (!cityData) {
         console.error('No data available for', cityKey);
@@ -1672,12 +1784,19 @@ async function updateExtremesAndRainfall() {
     const year = document.getElementById('annualYearSelect').value;
     
     try {
-    // Fetch data from the backend
-    const response = await fetch(`http://127.0.0.1:5000/weather/raw?city=${city.charAt(0).toUpperCase() + city.slice(1)}`);
-    const data = await response.json();
+        // Check if weather data is loaded
+        if (!weatherDataLoaded || Object.keys(weatherData).length === 0) {
+            console.error("Weather data not loaded yet");
+            return;
+        }
     
-    const cityKey = city.charAt(0).toUpperCase() + city.slice(1);
-    const cityData = data[cityKey].filter(record => record.date.startsWith(year));
+        const cityKey = city.charAt(0).toUpperCase() + city.slice(1);
+        const cityData = weatherData[cityKey] ? weatherData[cityKey].filter(record => record.date.startsWith(year)) : [];
+
+        if (!cityData || cityData.length === 0) {
+            console.error("No data available for", cityKey, year);
+            return;
+        }
 
     // Process data for seasonal extremes
     const seasonalData = {
@@ -1688,22 +1807,25 @@ async function updateExtremesAndRainfall() {
     };
 
     cityData.forEach(record => {
-        const month = new Date(record.date).getMonth();
+        const dateParts = record.date.split('-');
+        const month = parseInt(dateParts[1]) - 1; // Month is 0-indexed
         let season;
         if (month >= 11 || month <= 1) season = 'Summer';
         else if (month >= 2 && month <= 4) season = 'Autumn';
         else if (month >= 5 && month <= 7) season = 'Winter';
         else season = 'Spring';
 
-        seasonalData[season].max.push(record.temperature_2m_max);
-        seasonalData[season].min.push(record.temperature_2m_min);
-        });
+        if (seasonalData[season]) {
+            seasonalData[season].max.push(record.temperature_2m_max);
+            seasonalData[season].min.push(record.temperature_2m_min);
+        }
+    });
 
     // Calculate seasonal extremes
     const extremes = Object.entries(seasonalData).map(([season, data]) => ({
         season,
-        max: data.max.length > 0 ? Math.max(...data.max) : null,
-        min: data.min.length > 0 ? Math.min(...data.min) : null
+        max: data.max.length > 0 ? Math.max(...data.max.filter(v => v !== null)) : null,
+        min: data.min.length > 0 ? Math.min(...data.min.filter(v => v !== null)) : null
     }));
 
     // Update extremes chart
@@ -1719,8 +1841,11 @@ async function updateExtremesAndRainfall() {
     // Process monthly rainfall data
     const monthlyRain = Array(12).fill(0);
     cityData.forEach(record => {
-        const month = new Date(record.date).getMonth();
-        monthlyRain[month] += record.precipitation_sum;
+        const dateParts = record.date.split('-');
+        const month = parseInt(dateParts[1]) - 1;
+        if (month >= 0 && month < 12) {
+            monthlyRain[month] += (record.precipitation_sum || 0);
+        }
     });
 
     // Update rainfall chart
