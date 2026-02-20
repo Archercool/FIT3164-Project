@@ -4,15 +4,19 @@
 
 这个交互式天气仪表板是我与我的队友为Monash University FIT3164——数据科学项目所开发的毕业设计。其目标是创建一个直观、视觉丰富和可交互的平台，使用户能够探索澳大利亚的历史和近期天气趋势，包括温度和降雨量数据。仪表板为climate awareness, decision-making, 和 data exploration提供了宝贵的见解。
 
+### 访问地址
+```
+https://Archercool.github.io/FIT3164-Project/
+```
 
 ## 👥 团队成员
 
 ### 🎯 项目团队
 
-#### **Yunkai Huang** - 项目负责人/统筹者 + 后端开发核心
+#### **Yunkai Huang** - 项目负责人 + 后端开发核心
 
 **核心角色**
-- 项目负责人/统筹者 + 后端开发核心
+- 项目负责人 + 后端开发核心
 
 **核心职责**
 - 统筹项目整体规划，明确天气仪表盘的核心目标、阶段节点与交付物，制定敏捷冲刺计划，通过Trello看板管理任务、每周组织团队会议同步进度
@@ -28,10 +32,10 @@
 
 ---
 
-#### **Yameen Ahmed** - 前端开发专员 + 可视化实现核心
+#### **Yameen Ahmed** - 前端开发 + 可视化实现核心
 
 **核心角色**
-- 前端开发专员 + 可视化实现核心
+- 前端开发 + 可视化实现核心
 
 **核心职责**
 - 负责前端界面开发与交互实现，基于HTML5、Tailwind CSS、JavaScript搭建响应式界面，确保界面简洁、易用，贴合天气仪表盘的使用场景（学生、普通用户）
@@ -47,10 +51,10 @@
 
 ---
 
-#### **Aoran Li** - 数据处理专员 + 数据库管理
+#### **Aoran Li** - 数据处理 + 数据库管理
 
 **核心角色**
-- 数据处理专员 + 数据库管理
+- 数据处理 + 数据库管理
 
 **核心职责**
 - 负责气象数据的收集、清洗与预处理，对接BOM（澳大利亚气象局）数据源、Open-Meteo API，获取历史气象数据与实时/预报数据
@@ -66,10 +70,10 @@
 
 ---
 
-#### **Wen Wei Goh** - 文档撰写专员 + 功能测试与质量把控
+#### **Wen Wei Goh** - 文档撰写 + 功能测试与质量把控
 
 **核心角色**
-- 文档撰写专员 + 功能测试与质量把控
+- 文档撰写 + 功能测试与质量把控
 
 **核心职责**
 - 负责项目报告的撰写与优化，包括引言、项目背景、文献综述、方法论、软件交付物、 critique等章节，确保报告符合APA格式，内容完整、逻辑清晰
@@ -108,28 +112,6 @@
 ### 数据源
 - Open-Meteo API 提供实时天气数据
 - 内置澳大利亚各州地理数据
-
-## 🚀 部署说明
-
-### 快速部署
-```bash
-# 1. 进入项目目录
-cd E:\OpenCode\my_project1\FIT3164-Project
-
-# 2. 推送代码到GitHub
-git push -u origin main
-```
-
-### 配置GitHub Pages
-1. 访问 https://github.com/Archercool/FIT3164-Project/settings/pages
-2. **Source** 选择：`Deploy from a branch`
-3. **Branch** 选择：`main` / `front end`
-4. 点击 **Save**
-
-### 访问地址
-```
-https://Archercool.github.io/FIT3164-Project/
-```
 
 ## 📁 项目结构
 
@@ -180,22 +162,6 @@ FIT3164-Project/
 - Safari
 - Edge
 
-## 🔧 本地开发
-
-### 本地运行
-1. 下载 `front end` 目录中的所有文件
-2. 使用本地服务器（如Live Server、Python http.server）
-3. 在浏览器中打开 index.html
-
-### 本地服务器示例
-```bash
-# Python 3
-python -m http.server 8000
-
-# Node.js (需要安装http-server)
-npx http-server
-```
-
 ## 📄 许可证
 
 MIT License
@@ -223,4 +189,3 @@ MIT License
 
 ---
 
-**注意**：GitHub Pages 仅支持静态文件，后端代码需要单独部署或使用其他服务。
