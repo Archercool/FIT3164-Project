@@ -100,8 +100,43 @@ async function loadWeatherDataFromCSV() {
             console.log('Trying to load from local file...');
             const response = await fetch('./data/all_locations_daily_weather_data.csv');
             const csvText = await response.text();
-            // Same parsing logic...
-            console.log('Loaded from local file');
+            const lines = csvText.split('\n').filter(line => line.trim());
+            
+            const headers = lines[0].split(',');
+            const cities = ['Melbourne', 'Sydney', 'Brisbane', 'Perth', 'Adelaide', 'Canberra'];
+            cities.forEach(city => {
+                weatherData[city] = [];
+            });
+            
+            lines.slice(1).forEach(line => {
+                const values = line.split(',');
+                if (values.length < 16) return;
+                
+                const lat = values[1].replace(/"/g, '').trim();
+                let matchedCity = Object.keys(cityLatMap).find(key => cityLatMap[key] === lat);
+                
+                if (matchedCity) {
+                    let dateStr = values[0].replace(/"/g, '').trim();
+                    dateStr = dateStr.split(' ')[0];
+                    
+                    weatherData[matchedCity].push({
+                        date: dateStr,
+                        temperature_2m_max: parseFloat(values[4]) || null,
+                        temperature_2m_min: parseFloat(values[5]) || null,
+                        temperature_2m_mean: parseFloat(values[6]) || null,
+                        precipitation_sum: parseFloat(values[15]) || 0,
+                        rain_sum: parseFloat(values[16]) || 0
+                    });
+                }
+            });
+            
+            cities.forEach(city => {
+                weatherData[city].sort((a, b) => new Date(a.date) - new Date(b.date));
+            });
+            
+            console.log('Weather data loaded from local file!');
+            console.log('Cities loaded:', Object.keys(weatherData));
+            weatherDataLoaded = true;
         } catch (e) {
             console.error('Failed to load weather data:', e);
         }
