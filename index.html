@@ -1355,10 +1355,12 @@
       const [lat, lon] = cities[defaultCity];
       loadCurrentWeather(lat, lon);
       
+      // Define currentYear outside the if block
+      const currentYear = new Date().getFullYear() - 1;
+      const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
+      
       // Load initial past weather data (only if data is loaded)
       if (weatherDataLoaded) {
-        const currentYear = new Date().getFullYear() - 1;
-        const currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
         loadPastWeatherCompare('melbourne', 'sydney', currentYear, currentMonth);
       }
 
