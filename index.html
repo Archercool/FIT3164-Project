@@ -1374,8 +1374,8 @@
       trendEndYear.innerHTML = '';
       annualYearSelect.innerHTML = '';
 
-      // Add options for the last 20 years, excluding future years
-      for (let year = currentYear; year >= currentYear - 19; year--) {
+      // Add options for years 2000-2024 (data range)
+      for (let year = 2024; year >= 2000; year--) {
         const opt1 = document.createElement('option');
         const opt2 = document.createElement('option');
         const opt3 = document.createElement('option');
@@ -1390,9 +1390,9 @@
       }
 
       // Set default selections
-      trendStartYear.value = currentYear - 19;
-      trendEndYear.value = currentYear;
-      annualYearSelect.value = currentYear;
+      trendStartYear.value = 2024;
+      trendEndYear.value = 2024;
+      annualYearSelect.value = 2024;
 
       // Initialize the new charts with data
       updateAnnualPattern();
