@@ -9,9 +9,11 @@
 https://Archercool.github.io/FIT3164-Project/
 ```
 ### BUG修复
+```
+20/02/2026 Aoran LI发现并修复了以下问题：
 - 修复了Weather Trends 页面中数据显示异常的问题
 - 修复了年份选择器的年份选择问题
-
+```
 
 ## 👥 团队成员
 
