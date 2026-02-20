@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*~
+
+# Temporary files
+*.tmp
+*.log
+temp/
+
+# Build artifacts
+dist/
+build/
+
+# Data files (will be included if needed)
+# data/*.csv
+
+# Database files
+*.db
+*.sqlite
