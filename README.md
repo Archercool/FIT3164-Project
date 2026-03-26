@@ -188,7 +188,7 @@ MIT License
 
 ## 项目地址
 
-- **原GitHub项目**: https://github.com/yahm0003/FIT3164-Project
+- **小组GitHub项目**: https://github.com/yahm0003/FIT3164-Project
 - **GitHub项目**: https://github.com/Archercool/FIT3164-Project
 - **Yunkai's GitHub项目**: https://github.com/Yunkai030/Fit3164-Final-Weather-Dashboard/tree/main?tab=readme-ov-file
 
